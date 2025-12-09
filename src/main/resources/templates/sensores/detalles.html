@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Sensor: ' + ${sensor.nombre}">Detalles del Sensor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link active" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/app/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/sensores">Sensores</a></li>
+                <li class="breadcrumb-item active" th:text="${sensor.nombre}">Sensor Detalle</li>
+            </ol>
+        </nav>
+
+        <!-- Header con Acciones -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h2">
+                    <i class="bi bi-thermometer-half text-primary"></i>
+                    <span th:text="${sensor.nombre}">Sensor Temperatura Centro</span>
+                </h1>
+                <p class="text-muted">
+                    Sensor de <span th:text="${sensor.tipo}">temperatura</span> ubicado en 
+                    <span th:text="${sensor.ciudad}">Buenos Aires</span>
+                </p>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group" role="group">
+                    <a th:href="@{'/sensores/' + ${sensor.id} + '/editar'}" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <button type="button" 
+                            class="btn btn-outline-success"
+                            onclick="simularMedicion()">
+                        <i class="bi bi-play-circle"></i> Simular Medición
+                    </button>
+                    <button type="button" 
+                            class="btn btn-outline-danger"
+                            onclick="confirmarEliminacion()">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Información Principal -->
+            <div class="col-12">
+                <!-- Información Detallada -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle"></i> Información Detallada
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">ID del Sensor:</td>
+                                        <td><code th:text="${sensor.id}">sensor-001</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Tipo:</td>
+                                        <td>
+                                            <span class="badge bg-info" th:text="${sensor.tipo}">temperatura</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Ciudad:</td>
+                                        <td th:text="${sensor.ciudad}">Buenos Aires</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">País:</td>
+                                        <td th:text="${sensor.pais ?: 'Argentina'}">Argentina</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Latitud:</td>
+                                        <td th:text="${sensor.latitud ?: 'No especificada'}">-34.603722</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Longitud:</td>
+                                        <td th:text="${sensor.longitud ?: 'No especificada'}">-58.381592</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Fecha Inicio:</td>
+                                        <td th:text="${#temporals.format(sensor.fechaInicioEmision, 'dd/MM/yyyy HH:mm') ?: 'No disponible'}">01/12/2024 10:30</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Últimas Mediciones -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up"></i> Últimas Mediciones
+                        </h5>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaMedicion">
+                            <i class="bi bi-plus-circle"></i> Agregar Medición
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha/Hora</th>
+                                        <th>Temperatura</th>
+                                        <th>Humedad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="medicion : ${mediciones}">
+                                        <td th:text="${#temporals.format(medicion.fechaHora, 'dd/MM/yyyy HH:mm')}">01/12/2024 14:30</td>
+                                        <td class="fw-bold text-primary" th:text="${medicion.temperatura + '°C'}">25.4°C</td>
+                                        <td class="fw-bold text-info" th:text="${medicion.humedad + '%'}">60%</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(mediciones)}">
+                                        <td colspan="3" class="text-center text-muted">No hay mediciones registradas</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- cierre col-12 -->
+        </div><!-- cierre row -->
+    </div><!-- cierre container -->
+
+    <!-- Modal Nueva Medición -->
+    <div class="modal fade" id="modalNuevaMedicion" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Nueva Medición</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{'/sensores/' + ${sensor.id} + '/mediciones/crear'}" method="post">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Ingrese los valores de la medición para el sensor 
+                            <strong th:text="${sensor.nombre}">Sensor</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="temperatura" class="form-label">
+                                <i class="bi bi-thermometer-half"></i> Temperatura (°C)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="temperatura" 
+                                   name="temperatura" placeholder="Ej: 25.5" required>
+                            <div class="form-text">Ingrese el valor de temperatura en grados Celsius</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="humedad" class="form-label">
+                                <i class="bi bi-droplet"></i> Humedad (%)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="humedad" 
+                                   name="humedad" placeholder="Ej: 65.0" required>
+                            <div class="form-text">Ingrese el valor de humedad en porcentaje</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar Medición
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación Eliminar -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el sensor <strong th:text="${sensor.nombre}">Sensor</strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Esta acción eliminará también todas las mediciones asociadas y no se puede deshacer.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form th:action="@{'/sensores/' + ${sensor.id} + '/eliminar'}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Eliminar Permanentemente</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

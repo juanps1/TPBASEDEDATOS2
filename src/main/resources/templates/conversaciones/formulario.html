@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Conversación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">Nueva Conversación</h4>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/conversaciones/crear}" method="post" class="needs-validation" novalidate>
+                                <div class="mb-3">
+                                    <label class="form-label">Título *</label>
+                                    <input type="text" name="titulo" class="form-control" 
+                                           placeholder="Asunto de la conversación" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Participantes *</label>
+                                    <select name="participantesIds" class="form-select" multiple size="5" required>
+                                        <option th:each="usuario : ${usuarios}" 
+                                                th:value="${usuario.id}" 
+                                                th:text="${usuario.nombreCompleto} + ' (' + ${usuario.email} + ')'">
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples usuarios</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje inicial (opcional)</label>
+                                    <textarea name="mensajeInicial" class="form-control" rows="4" 
+                                              placeholder="Escribe el primer mensaje de la conversación"></textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/conversaciones}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-custom-primary">
+                                        <i class="bi bi-chat-dots"></i> Crear Conversación
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

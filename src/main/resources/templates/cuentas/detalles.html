@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles Cuenta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title" th:text="${cuenta.usuario.nombreCompleto}">Usuario</h5>
+                            <p class="text-muted" th:text="${cuenta.usuario.email}">email@example.com</p>
+                            
+                            <div class="my-4">
+                                <p class="mb-1 text-muted">Saldo Actual</p>
+                                <h2 th:classappend="${cuenta.saldo >= 0} ? 'text-success' : 'text-danger'">
+                                    $<span th:text="${#numbers.formatDecimal(cuenta.saldo, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                                </h2>
+                            </div>
+
+                            <a th:href="@{/cuentas}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Movimientos</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Descripción</th>
+                                        <th class="text-end">Monto</th>
+                                        <th class="text-end">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(cuenta.movimientos)}">
+                                        <td colspan="5" class="text-center py-4">No hay movimientos registrados</td>
+                                    </tr>
+                                    <tr th:each="mov : ${cuenta.movimientos}">
+                                        <td th:text="${#temporals.format(mov.fecha, 'dd/MM/yyyy HH:mm')}">01/12/2024</td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${mov.tipo == 'CREDITO'} ? 'bg-success' : 'bg-danger'"
+                                                  th:text="${mov.tipo}">CREDITO</span>
+                                        </td>
+                                        <td th:text="${mov.descripcion}">Descripción</td>
+                                        <td class="text-end" 
+                                            th:classappend="${mov.tipo == 'CREDITO'} ? 'text-success' : 'text-danger'">
+                                            <strong th:text="${mov.tipo == 'CREDITO'} ? '+$' + ${#numbers.formatDecimal(mov.monto, 0, 'COMMA', 2, 'POINT')} : '-$' + ${#numbers.formatDecimal(mov.monto, 0, 'COMMA', 2, 'POINT')}">+$100.00</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <span th:text="'$' + ${#numbers.formatDecimal(mov.saldoResultante, 0, 'COMMA', 2, 'POINT')}">$1,000.00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

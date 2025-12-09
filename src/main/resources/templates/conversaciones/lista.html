@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="d-flex justify-content-between mb-4">
+                <h2><i class="bi bi-chat-dots"></i> Conversaciones</h2>
+                <a th:href="@{/conversaciones/nueva}" class="btn btn-custom-primary">
+                    <i class="bi bi-plus-circle"></i> Nueva Conversación
+                </a>
+            </div>
+
+            <div class="row">
+                <div th:each="conversacion : ${conversaciones}" class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 conversation-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1" th:text="${conversacion.titulo}">Conversación</h5>
+                            <p class="text-muted small mb-3">
+                                Participantes: <span th:text="${#lists.size(conversacion.participantes)}">2</span>
+                            </p>
+                            
+                            <div class="mb-3" th:if="${!#lists.isEmpty(conversacion.mensajes)}">
+                                <p class="text-muted small mb-1">Último mensaje:</p>
+                                <p class="small" th:with="ultimo=${conversacion.mensajes[conversacion.mensajes.size() - 1]}">
+                                    <strong th:text="${ultimo.remitente.nombreCompleto}">Usuario</strong>: 
+                                    <span th:text="${#strings.abbreviate(ultimo.contenido, 50)}">Mensaje...</span>
+                                </p>
+                                <p class="text-muted small" th:with="ultimo=${conversacion.mensajes[conversacion.mensajes.size() - 1]}">
+                                    <i class="bi bi-clock"></i> 
+                                    <span th:text="${#temporals.format(ultimo.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                                </p>
+                            </div>
+
+                            <a th:href="@{/conversaciones/{id}(id=${conversacion.id})}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-chat-text"></i> Ver Chat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(conversaciones)}" class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle"></i> No hay conversaciones disponibles
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

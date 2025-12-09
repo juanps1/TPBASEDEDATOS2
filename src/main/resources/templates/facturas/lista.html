@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Facturas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <h2 class="mb-4">💰 Gestión de Facturas</h2>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="get" th:action="@{/facturas}" class="row g-3">
+                        <div class="col-md-4">
+                            <select name="estado" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="pagada">Pagada</option>
+                                <option value="vencida">Vencida</option>
+                                <option value="anulada">Anulada</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Fecha Emisión</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(facturas)}">
+                                <td colspan="7" class="text-center py-4">No hay facturas</td>
+                            </tr>
+                            <tr th:each="factura : ${facturas}">
+                                <td th:text="${factura.id}">1</td>
+                                <td th:text="${factura.usuario?.nombreCompleto}">Juan Pérez</td>
+                                <td th:text="${#temporals.format(factura.fechaEmision, 'dd/MM/yyyy')}">01/12/2024</td>
+                                <td th:text="${#temporals.format(factura.fechaVencimiento, 'dd/MM/yyyy')}">31/12/2024</td>
+                                <td>
+                                    <strong th:text="${#numbers.formatDecimal(factura.monto, 0, 'COMMA', 2, 'POINT')}">$1,250.00</strong>
+                                </td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${factura.estado == 'pagada'} ? 'bg-success' : 
+                                                         (${factura.estado == 'pendiente'} ? 'bg-warning' : 'bg-danger')"
+                                          th:text="${factura.estado}">Pendiente</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/facturas/{id}(id=${factura.id})}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

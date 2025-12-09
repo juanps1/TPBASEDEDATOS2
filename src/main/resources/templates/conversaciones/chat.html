@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        }
+        .message-sent {
+            background-color: #0d6efd;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message-received {
+            background-color: white;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="bi bi-chat-dots"></i> <span th:text="${conversacion.titulo}">Conversación</span></h4>
+                        <a th:href="@{/conversaciones}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">
+                        Participantes: 
+                        <span th:each="participante, iterStat : ${conversacion.participantes}">
+                            <span th:text="${participante.nombreCompleto}">Usuario</span><span th:if="${!iterStat.last}">, </span>
+                        </span>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container" id="chatContainer">
+                        <div th:if="${#lists.isEmpty(conversacion.mensajes)}" class="text-center text-muted mt-5">
+                            <i class="bi bi-chat-text" style="font-size: 3rem;"></i>
+                            <p>No hay mensajes aún. ¡Inicia la conversación!</p>
+                        </div>
+
+                        <div th:each="mensaje : ${conversacion.mensajes}" 
+                             class="d-flex" 
+                             th:classappend="${mensaje.remitente.id == usuarioActual.id} ? 'justify-content-end' : 'justify-content-start'">
+                            <div class="message-bubble" 
+                                 th:classappend="${mensaje.remitente.id == usuarioActual.id} ? 'message-sent' : 'message-received'">
+                                <div class="fw-bold small mb-1" th:text="${mensaje.remitente.nombreCompleto}">Usuario</div>
+                                <div th:text="${mensaje.contenido}">Contenido del mensaje</div>
+                                <div class="small opacity-75 mt-1" th:text="${#temporals.format(mensaje.fechaEnvio, 'HH:mm')}">10:30</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/conversaciones/{id}/mensaje(id=${conversacion.id})}" method="post" class="mt-3">
+                        <div class="input-group">
+                            <input type="text" name="contenido" class="form-control" 
+                                   placeholder="Escribe un mensaje..." required>
+                            <button type="submit" class="btn btn-custom-primary">
+                                <i class="bi bi-send"></i> Enviar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script>
+        // Auto-scroll to bottom on load
+        const chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>

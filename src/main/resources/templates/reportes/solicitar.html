@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Reportes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/app/dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sensores">
+                            <i class="bi bi-cpu"></i> Gestionar Sensores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mediciones">
+                            <i class="bi bi-graph-up"></i> Ver Mediciones
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/reportes">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/facturas">
+                            <i class="bi bi-receipt"></i> Facturas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mensajes">
+                            <i class="bi bi-chat-dots"></i> Mensajes
+                        </a>
+                    </li>
+                </ul>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Alertas -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h2">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Solicitar Reportes
+                </h1>
+                <p class="text-muted">Genere reportes personalizados de análisis de datos IoT</p>
+            </div>
+            <div class="col-auto">
+                <a href="/reportes/mis-solicitudes" class="btn btn-outline-primary">
+                    <i class="bi bi-list-ul"></i> Mis Solicitudes
+                </a>
+            </div>
+        </div>
+
+        <!-- Información de Costos -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Importante:</strong> La generación de reportes tiene un costo de <strong>$250.00</strong> por reporte.
+            Se generará una factura automáticamente cuando su reporte esté listo.
+        </div>
+
+        <!-- Formulario de Solicitud -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-data"></i> Configurar Reporte
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/reportes/solicitar">
+                    <!-- Tipo de Reporte -->
+                    <div class="mb-4">
+                        <label for="tipoReporte" class="form-label">
+                            <i class="bi bi-diagram-3"></i> Tipo de Reporte <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="tipoReporte" name="tipoReporte" required onchange="mostrarDescripcionReporte()">
+                            <option value="">Seleccione un tipo de reporte</option>
+                            <option value="INFORME_MAX_MIN">Informe de Humedad y Temperaturas Máximas y Mínimas</option>
+                            <option value="INFORME_PROMEDIO">Informe de Humedad y Temperaturas Promedio</option>
+                            <option value="ALERTAS_RANGO">Alertas de Temperaturas y Humedad en Rango Determinado</option>
+                        </select>
+                        
+                        <!-- Descripción del reporte seleccionado -->
+                        <div id="descripcionMaxMin" class="alert alert-info mt-3" style="display: none;">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <strong>Informe de Máximas y Mínimas</strong>
+                            <p class="mb-0 mt-2">
+                                Este reporte identifica los <strong>valores extremos</strong> registrados en el período seleccionado:
+                            </p>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Temperatura máxima</strong> y <strong>mínima</strong> alcanzada</li>
+                                <li><strong>Humedad máxima</strong> y <strong>mínima</strong> registrada</li>
+                                <li>Total de mediciones analizadas</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="descripcionPromedio" class="alert alert-success mt-3" style="display: none;">
+                            <i class="bi bi-graph-up"></i>
+                            <strong>Informe de Promedios</strong>
+                            <p class="mb-0 mt-2">
+                                Este reporte calcula los <strong>valores promedio</strong> de todas las mediciones en el período:
+                            </p>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Temperatura promedio</strong> del período</li>
+                                <li><strong>Humedad promedio</strong> del período</li>
+                                <li>Total de mediciones incluidas en el cálculo</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="descripcionAlertas" class="alert alert-warning mt-3" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>Reporte de Alertas Críticas</strong>
+                            <p class="mb-0 mt-2">
+                                Este reporte identifica <strong>condiciones peligrosas</strong> detectadas por los sensores:
+                            </p>
+                            <ul class="mb-0 mt-2">
+                                <li>🌡️ <strong>Alertas de temperatura:</strong> Valores superiores a 30°C o inferiores a 10°C</li>
+                                <li>💧 <strong>Alertas de humedad:</strong> Valores superiores a 80% o inferiores a 30%</li>
+                                <li>📊 Cantidad total de situaciones críticas detectadas</li>
+                            </ul>
+                            <p class="mb-0 mt-2 text-muted">
+                                <small>Útil para identificar períodos con condiciones ambientales extremas que requieren atención.</small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="ciudad" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Ciudad
+                            </label>
+                            <select class="form-select" id="ciudad" name="ciudad" onchange="filtrarSensores()">
+                                <option value="">Todas las ciudades</option>
+                                <option th:each="ciudad : ${ciudades}" 
+                                        th:value="${ciudad}" 
+                                        th:text="${ciudad}">Ciudad</option>
+                            </select>
+                            <div class="form-text">Filtrar por ciudad específica</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="sensorId" class="form-label">
+                                <i class="bi bi-cpu"></i> Sensor
+                            </label>
+                            <select class="form-select" id="sensorId" name="sensorId">
+                                <option value="">Todos los sensores</option>
+                                <option th:each="sensor : ${sensores}" 
+                                        th:value="${sensor.id}" 
+                                        th:text="${sensor.nombre + ' (' + sensor.ciudad + ')'}"
+                                        th:attr="data-ciudad=${sensor.ciudad}">Sensor</option>
+                            </select>
+                            <div class="form-text">Para reportes de sensor específico (opcional)</div>
+                        </div>
+                    </div>
+
+                    <!-- Parámetros de Alertas (solo visible para ALERTAS_RANGO) -->
+                    <div id="parametrosAlertas" style="display: none;">
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-sliders"></i> Configurar Rangos de Alerta
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">
+                                    Define los rangos normales. El reporte mostrará mediciones <strong>fuera</strong> de estos valores.
+                                </p>
+                                
+                                <div class="row">
+                                    <!-- Temperatura -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="bi bi-thermometer-half"></i> Rango Normal de Temperatura (°C)
+                                        </label>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label for="tempMin" class="form-label text-muted small">Mínima</label>
+                                                <input type="number" class="form-control" id="tempMin" name="tempMin" 
+                                                       value="10" step="0.1" placeholder="10">
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="tempMax" class="form-label text-muted small">Máxima</label>
+                                                <input type="number" class="form-control" id="tempMax" name="tempMax" 
+                                                       value="30" step="0.1" placeholder="30">
+                                            </div>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Alertas: temperaturas < <strong id="tempMinDisplay">10</strong>°C o > <strong id="tempMaxDisplay">30</strong>°C
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Humedad -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="bi bi-droplet-half"></i> Rango Normal de Humedad (%)
+                                        </label>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label for="humMin" class="form-label text-muted small">Mínima</label>
+                                                <input type="number" class="form-control" id="humMin" name="humMin" 
+                                                       value="30" step="0.1" placeholder="30">
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="humMax" class="form-label text-muted small">Máxima</label>
+                                                <input type="number" class="form-control" id="humMax" name="humMax" 
+                                                       value="80" step="0.1" placeholder="80">
+                                            </div>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Alertas: humedad < <strong id="humMinDisplay">30</strong>% o > <strong id="humMaxDisplay">80</strong>%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rango de Fechas -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="fechaInicio" class="form-label">
+                                <i class="bi bi-calendar-event"></i> Fecha Inicio <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fechaFin" class="form-label">
+                                <i class="bi bi-calendar-check"></i> Fecha Fin <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="fechaFin" name="fechaFin" required>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de Costo -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="bi bi-receipt"></i> Resumen de Facturación
+                            </h6>
+                            <p class="mb-1">Costo del reporte: <strong class="text-primary">$250.00</strong></p>
+                            <small class="text-muted">
+                                Se generará una factura con vencimiento a 15 días. 
+                                Si tiene cuenta corriente, el monto se debitará automáticamente.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/app/dashboard" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Solicitar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar/ocultar descripción según tipo de reporte
+        document.getElementById('tipoReporte').addEventListener('change', function() {
+            const tipo = this.value;
+            
+            // Ocultar todas las descripciones
+            document.getElementById('descripcionMaxMin').style.display = 'none';
+            document.getElementById('descripcionPromedio').style.display = 'none';
+            document.getElementById('descripcionAlertas').style.display = 'none';
+            document.getElementById('parametrosAlertas').style.display = 'none';
+            
+            // Mostrar la descripción correspondiente
+            if (tipo === 'INFORME_MAX_MIN') {
+                document.getElementById('descripcionMaxMin').style.display = 'block';
+            } else if (tipo === 'INFORME_PROMEDIO') {
+                document.getElementById('descripcionPromedio').style.display = 'block';
+            } else if (tipo === 'ALERTAS_RANGO') {
+                document.getElementById('descripcionAlertas').style.display = 'block';
+                document.getElementById('parametrosAlertas').style.display = 'block';
+            }
+        });
+        
+        // Actualizar displays de rangos en tiempo real
+        document.getElementById('tempMin').addEventListener('input', function() {
+            document.getElementById('tempMinDisplay').textContent = this.value || '10';
+        });
+        document.getElementById('tempMax').addEventListener('input', function() {
+            document.getElementById('tempMaxDisplay').textContent = this.value || '30';
+        });
+        document.getElementById('humMin').addEventListener('input', function() {
+            document.getElementById('humMinDisplay').textContent = this.value || '30';
+        });
+        document.getElementById('humMax').addEventListener('input', function() {
+            document.getElementById('humMaxDisplay').textContent = this.value || '80';
+        });
+    
+        function filtrarSensores() {
+            const ciudadSelect = document.getElementById('ciudad');
+            const sensorSelect = document.getElementById('sensorId');
+            const ciudadSeleccionada = ciudadSelect.value;
+            
+            // Obtener todas las opciones de sensores
+            const opciones = sensorSelect.getElementsByTagName('option');
+            
+            // Resetear el sensor seleccionado
+            sensorSelect.value = '';
+            
+            // Mostrar/ocultar opciones según la ciudad
+            for (let i = 0; i < opciones.length; i++) {
+                const opcion = opciones[i];
+                
+                // La primera opción (Todos los sensores) siempre visible
+                if (i === 0) {
+                    opcion.style.display = '';
+                    continue;
+                }
+                
+                const ciudadOpcion = opcion.getAttribute('data-ciudad');
+                
+                // Si no hay ciudad seleccionada, mostrar todos
+                if (!ciudadSeleccionada) {
+                    opcion.style.display = '';
+                } 
+                // Si hay ciudad seleccionada, solo mostrar de esa ciudad
+                else if (ciudadOpcion === ciudadSeleccionada) {
+                    opcion.style.display = '';
+                } 
+                else {
+                    opcion.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

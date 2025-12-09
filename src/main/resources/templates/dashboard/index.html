@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema Persistencia Poliglota</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .metric-card { transition: transform 0.2s; }
+        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/app/dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sensores">
+                            <i class="bi bi-cpu"></i> Gestionar Sensores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mediciones">
+                            <i class="bi bi-graph-up"></i> Ver Mediciones
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reportes">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mediciones">
+                            <i class="bi bi-graph-up"></i> Mediciones
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mensajes">
+                            <i class="bi bi-chat-dots"></i> Mensajes
+                        </a>
+                    </li>
+                </ul>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <!-- Métricas principales -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card metric-card primary h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Sensores
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalSensores ?: '0'}">
+                                    12
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-thermometer-half text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card metric-card success h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Sensores Activos
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${sensoresActivos ?: '0'}">
+                                    8
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card metric-card warning h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Alertas Pendientes
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${alertasPendientes ?: '0'}">
+                                    3
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card metric-card danger h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Usuarios Registrados
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${usuariosRegistrados ?: '0'}">
+                                    25
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos y Métricas en Tiempo Real -->
+        <div class="row">
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-graph-up"></i>
+                            Métricas en Tiempo Real (Redis)
+                        </h6>
+                        <div class="badge bg-success">En vivo</div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="metricsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-database"></i>
+                            Bases de Datos
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-sm font-weight-bold">PostgreSQL</span>
+                                <span class="badge bg-success">Conectado</span>
+                            </div>
+                            <div class="progress mb-1">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                            </div>
+                            <small class="text-muted">Usuarios, Facturas, Alertas</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-sm font-weight-bold">MongoDB</span>
+                                <span class="badge bg-success">Conectado</span>
+                            </div>
+                            <div class="progress mb-1">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 92%"></div>
+                            </div>
+                            <small class="text-muted">Sensores, Mediciones</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-sm font-weight-bold">Redis</span>
+                                <span class="badge bg-success">Conectado</span>
+                            </div>
+                            <div class="progress mb-1">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 78%"></div>
+                            </div>
+                            <small class="text-muted">Cache, Sesiones, Métricas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accesos rápidos -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-lightning"></i>
+                            Accesos Rápidos
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/sensores}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-thermometer-half"></i>
+                                Gestionar Sensores
+                            </a>
+                            <a th:href="@{/mediciones}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-graph-up"></i>
+                                Ver Mediciones
+                            </a>
+                            <a th:href="@{/facturas}" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-receipt"></i>
+                                Gestionar Facturas
+                            </a>
+                            <a th:href="@{/usuarios}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-people"></i>
+                                Administrar Usuarios
+                            </a>
+                            <a th:href="@{/app/alertas}" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Ver Alertas
+                            </a>
+                            <a th:href="@{/app/metricas}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-bar-chart"></i>
+                                Métricas Redis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        // Configuración del gráfico de métricas
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        const metricsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                datasets: [{
+                    label: 'Temperatura Promedio',
+                    data: [22.5, 23.1, 22.8, 24.2, 23.7, 23.9],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1
+                }, {
+                    label: 'Humedad Promedio',
+                    data: [65, 62, 68, 70, 67, 69],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Métricas de Sensores - Últimos 30 minutos'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Actualización automática cada 30 segundos
+        setInterval(function() {
+            // Aquí podrías hacer una petición AJAX para obtener datos actualizados
+            console.log('Actualizando métricas...');
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+
+package com.tp.persistencia.persistencia_poliglota.service;
+import com.tp.persistencia.persistencia_poliglota.model.sql.Usuario;
+import com.tp.persistencia.persistencia_poliglota.repository.UsuarioRepository;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class UsuarioService {
+
+    private final UsuarioRepository usuarioRepository;
+
+    public UsuarioService(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    public List<Usuario> listarUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    public Usuario guardarUsuario(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
+
+    public boolean existeEmail(String email) {
+        return usuarioRepository.findByEmail(email).isPresent();
+    }
+
+    public Usuario actualizarRol(Long usuarioId, Long rolId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        if (usuario == null) return null;
+        // Asumimos que el rol existe y se validó en el controller
+        usuario.getRol().setId(rolId);
+        return usuarioRepository.save(usuario);
+    }
+
+    public Usuario buscarPorUsername(String username) {
+        return usuarioRepository.findByEmail(username).orElse(null);
+    }
+    
+    // Alias para compatibilidad con el controlador web
+    public Usuario obtenerPorId(Long id) {
+        return usuarioRepository.findById(id).orElse(null);
+    }
+}
+

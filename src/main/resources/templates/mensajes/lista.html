@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Conversaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-database-gear"></i> IoT Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/app/dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/sensores">
+                            <i class="bi bi-cpu"></i> Sensores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mediciones">
+                            <i class="bi bi-graph-up"></i> Mediciones
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/facturas">
+                            <i class="bi bi-receipt"></i> Facturas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reportes">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/mensajes">
+                            <i class="bi bi-chat-dots"></i> Mensajes
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Alertas -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-chat-dots"></i> Mis Conversaciones</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaConversacionModal">
+                <i class="bi bi-plus-circle"></i> Nueva Conversación
+            </button>
+        </div>
+
+        <!-- Lista de Conversaciones -->
+        <div class="row">
+            <div class="col-md-12">
+                <div th:if="${#lists.isEmpty(conversaciones)}" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No tienes conversaciones. Crea una nueva para comenzar.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(conversaciones)}">
+                    <div class="list-group">
+                        <a th:each="conv : ${conversaciones}" 
+                           th:href="@{/mensajes/{id}(id=${conv.id})}"
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">
+                                    <i class="bi bi-chat-left-text text-primary"></i>
+                                    <span th:text="${conv.nombre != null ? conv.nombre : 'Conversación #' + conv.id}">Título</span>
+                                    <span th:if="${conv.tipo == 'grupal'}" class="badge bg-info">Grupal</span>
+                                </h5>
+                                <small class="text-muted" th:text="${#temporals.format(conv.fechaCreacion, 'dd/MM/yyyy HH:mm')}">Fecha</small>
+                            </div>
+                            <p class="mb-1 text-muted">
+                                <i class="bi bi-calendar"></i>
+                                <span th:text="${#temporals.format(conv.fechaCreacion, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                            </p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Conversación -->
+    <div class="modal fade" id="nuevaConversacionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle"></i> Nueva Conversación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="/mensajes/crear">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="titulo" name="titulo" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Conversación</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipoConv" id="individual" value="individual" checked onchange="cambiarTipo()">
+                                <label class="form-check-label" for="individual">
+                                    <i class="bi bi-person"></i> Individual (1 a 1)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipoConv" id="grupal" value="grupal" onchange="cambiarTipo()">
+                                <label class="form-check-label" for="grupal">
+                                    <i class="bi bi-people"></i> Grupal
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Para conversación individual -->
+                        <div id="destinatarioDiv" class="mb-3">
+                            <label for="destinatarioId" class="form-label">Destinatario</label>
+                            <select class="form-select" id="destinatarioId" name="destinatarioId">
+                                <option value="">Seleccione un usuario</option>
+                                <option th:each="u : ${usuarios}" 
+                                        th:value="${u.id}" 
+                                        th:text="${u.nombreCompleto + ' (' + u.email + ')'}"
+                                        th:if="${u.id != usuarioActual.id}">Usuario</option>
+                            </select>
+                        </div>
+
+                        <!-- Para conversación grupal -->
+                        <div id="participantesDiv" class="mb-3" style="display: none;">
+                            <label class="form-label">Participantes</label>
+                            <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                <div th:each="u : ${usuarios}" class="form-check" th:if="${u.id != usuarioActual.id}">
+                                    <input class="form-check-input" type="checkbox" name="participantesIds" 
+                                           th:value="${u.id}" th:id="'user' + ${u.id}">
+                                    <label class="form-check-label" th:for="'user' + ${u.id}">
+                                        <span th:text="${u.nombreCompleto}">Usuario</span>
+                                        <small class="text-muted" th:text="'(' + ${u.email} + ')'"></small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="primerMensaje" class="form-label">Primer Mensaje (opcional)</label>
+                            <textarea class="form-control" id="primerMensaje" name="primerMensaje" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Crear Conversación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function cambiarTipo() {
+            const individual = document.getElementById('individual').checked;
+            document.getElementById('destinatarioDiv').style.display = individual ? 'block' : 'none';
+            document.getElementById('participantesDiv').style.display = individual ? 'none' : 'block';
+            
+            if (individual) {
+                document.getElementById('destinatarioId').required = true;
+            } else {
+                document.getElementById('destinatarioId').required = false;
+            }
+        }
+    </script>
+</body>
+</html>

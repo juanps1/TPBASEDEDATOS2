@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${titulo}">Detalles Medición</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Detalles de la Medición</h4>
+                            <span class="badge bg-primary" th:text="${medicion.id}">ID</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Sensor ID</label>
+                                    <p class="fw-bold" th:text="${medicion.sensorId}">sensor-001</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Fecha/Hora</label>
+                                    <p class="fw-bold" th:text="${#temporals.format(medicion.fechaHora, 'dd/MM/yyyy HH:mm:ss')}">01/12/2024 10:30:00</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Temperatura</label>
+                                    <p><span class="h3 text-danger" th:text="${medicion.temperatura}">25.5</span> °C</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Humedad</label>
+                                    <p><span class="h3 text-info" th:text="${medicion.humedad}">65.0</span> %</p>
+                                </div>
+                            </div>
+
+                            <div th:if="${sensor}" class="alert alert-info">
+                                <h6><i class="bi bi-info-circle"></i> Información del Sensor</h6>
+                                <p class="mb-0"><strong>Nombre:</strong> <span th:text="${sensor.nombre}">Sensor Principal</span></p>
+                                <p class="mb-0"><strong>Ubicación:</strong> <span th:text="${sensor.ciudad} + ', ' + ${sensor.pais}">Buenos Aires, Argentina</span></p>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/mediciones}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Volver
+                                </a>
+                                <form th:action="@{/mediciones/{id}/eliminar(id=${medicion.id})}" method="post">
+                                    <button type="submit" class="btn btn-danger btn-delete">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

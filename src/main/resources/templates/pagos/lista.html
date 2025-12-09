@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="d-flex justify-content-between mb-4">
+                <h2><i class="bi bi-cash-coin"></i> Gestión de Pagos</h2>
+                <a th:href="@{/pagos/nuevo}" class="btn btn-custom-primary">
+                    <i class="bi bi-plus-circle"></i> Registrar Pago
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Factura</th>
+                                <th>Monto</th>
+                                <th>Método</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(pagos)}">
+                                <td colspan="6" class="text-center py-4">No hay pagos registrados</td>
+                            </tr>
+                            <tr th:each="pago : ${pagos}">
+                                <td th:text="${pago.id}">1</td>
+                                <td th:text="${#temporals.format(pago.fechaPago, 'dd/MM/yyyy HH:mm')}">01/12/2024</td>
+                                <td>
+                                    <a th:href="@{/facturas/{id}(id=${pago.factura.id})}" 
+                                       th:text="'Factura #' + ${pago.factura.id}">Factura #1</a>
+                                </td>
+                                <td><strong th:text="'$' + ${#numbers.formatDecimal(pago.monto, 0, 'COMMA', 2, 'POINT')}">$1,250.00</strong></td>
+                                <td><span class="badge bg-info" th:text="${pago.metodoPago}">Efectivo</span></td>
+                                <td>
+                                    <a th:href="@{/pagos/{id}(id=${pago.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

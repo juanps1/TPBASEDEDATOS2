@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Procesos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/app/dashboard">
+                <i class="bi bi-cpu"></i> IoT Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/app/dashboard">Dashboard</a>
+                <a class="nav-link" href="/sensores">Sensores</a>
+                <div sec:authorize="isAuthenticated()">
+                    <form class="d-inline" method="post" action="/logout">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+            <div class="d-flex justify-content-between mb-4">
+                <h2><i class="bi bi-gear-wide-connected"></i> Gestión de Procesos</h2>
+                <a th:href="@{/procesos/nuevo}" class="btn btn-custom-primary">
+                    <i class="bi bi-plus-circle"></i> Nuevo Proceso
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-custom table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(procesos)}">
+                                <td colspan="5" class="text-center py-4">No hay procesos registrados</td>
+                            </tr>
+                            <tr th:each="proceso : ${procesos}">
+                                <td th:text="${proceso.id}">1</td>
+                                <td><strong th:text="${proceso.nombre}">Proceso</strong></td>
+                                <td th:text="${proceso.descripcion}">Descripción</td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${proceso.activo} ? 'bg-success' : 'bg-secondary'"
+                                          th:text="${proceso.activo} ? 'Activo' : 'Inactivo'">Activo</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/procesos/{id}(id=${proceso.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/procesos/{id}/editar(id=${proceso.id})}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/procesos/{id}/eliminar(id=${proceso.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                onclick="return confirm('¿Está seguro de eliminar este proceso?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
